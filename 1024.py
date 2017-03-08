@@ -1,89 +1,92 @@
-# -*- coding:utf-8  -*-
+#-*- coding:utf-8 -*-
+import os
+import requests
 import re
 from bs4 import BeautifulSoup
-import urllib.request
-import urllib.error
-import time
-import os
 
-PATH = 'D:\\Media\\'  # 存储路径
-ROOTURL = 'http://www.t66y.com/'  # 或者1024的代理地址
+PATH = 'D:\\Media\\'
+ROOTURL = 'http://cc.vcly.org/'
+menu = 'thread0806.php?fid=8&type='
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                         'Chrome/55.0.2883.87 Safari/537.36'}
 
 
-# url请求
-def urlrequest(url):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                      'Chrome/55.0.2883.87 Safari/537.36',
-        'Accept-Encoding': 'gzip, deflate, sdch',
-        'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.6',
-        'Connection': 'keep-alive',
-    }
-    test = True
-    while test:
+def userinterface():
+    print("┌────────────────────┐")
+    print("│             1024图片爬取器             │")
+    print("│             请输入对应序号             │")
+    print("│                 1、亚洲                │")
+    print("│                 2、欧美                │")
+    print("│                 3、动漫                │")
+    print("│                 4、写真                │")
+    print("│                 5、其他                │")
+    print("└────────────────────┘")
+    while True:
         try:
-            request = urllib.request.Request(url, headers=headers)
-            response = urllib.request.urlopen(request, timeout=5)  #爬取网页超时时间
-            test = False
-            return response
-        except Exception as e:
-            print(Exception, ':', e)
+            select = int(input('Input an integer: '))
+            if 0 < select < 5:
+                return select
+            elif select == 5:
+                return 12
+            else:
+                print("输入1-5")
+        except ValueError:
+            print('请输入序号')
 
 
-#目录地址爬虫，爬取网址
-def urlspider(page):
-    urldir = ROOTURL + 'thread0806.php?fid=8&search=&type=1&page='
-    url = urldir + str(page)
-    response = urlrequest(url)
-    soup = BeautifulSoup(response.read(), 'html.parser')
-    urllist = soup.find_all(href=re.compile('htm_data'), id=re.compile(''))
-    length = len(urllist)
-    for item in range(length):
-        picurl = ROOTURL + urllist[item].attrs['href']
-
-        print(urllist[item].text)
-        path = PATH + urllist[item].text + '\\'
-        if not os.path.exists(path):
-            os.makedirs(path)
-        print(picurl)
-        picspider(picurl, path)
-
-        if item % 20 == 0:
-            time.sleep(3)  #休眠时间
+def request(url):
+    try:
+        r = requests.get(ROOTURL + url, headers=headers)
+        r.encoding = 'gbk'
+        print(r.status_code)
+        r.raise_for_status()
+        return r
+    except ConnectionError:
+        print("ConnectionError")
 
 
-#根据地址下载图片，并编号保存
-def download(url, num, path):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                      'Chrome/55.0.2883.87 Safari/537.36',
-        'Accept-Encoding': 'gzip, deflate, sdch',
-        'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.6',
-        'Connection': 'keep-alive',
-    }
-    request = urllib.request.Request(url, headers=headers)
-    response = urllib.request.urlopen(request, timeout=60)  #爬取图片超时时间
-    img = response
-    response.close()
-    time.sleep(3)  #休眠时间
-    f = open(path + str(num) + '.jpg', 'wb')
-    f.write(img.read())
-    f.close()
+def gethtmllist():
+    select = userinterface()
+    r = request(menu + str(select))
+    soup = BeautifulSoup(r.text, 'html.parser')
+
+    for url in soup.find_all('a', id="", target="_blank", href=re.compile('htm_data'), title=""):
+        print(url.string)
+        html = url.attrs['href']
+        print(ROOTURL + html)
+        getpiclist(html, url.string)
 
 
-#图片爬虫，爬取地址
-def picspider(url, path):
-    response = urlrequest(url)
-    content = response.read().decode('gbk')
-    pattern = re.compile('input src=\'(.*?)\' type=\'image\'', re.S)
-    items = re.findall(pattern, content)
-    cnt = 0
-    for item in items:
-        print(item)
-        cnt += 1
-        download(item, cnt, path)
+def getpiclist(html, title):
+    r = request(html)
+    soup = BeautifulSoup(r.text, 'html.parser')
+
+    div = soup.find('div', class_="tpc_content do_not_catch")
+    pattern = re.compile('src=\"(.*?)\"')
+    items = re.findall(pattern, str(div))
+    for url in items:
+        downloadpic(url, title)
+
+
+def downloadpic(url, title):
+    pic = PATH + title + '\\' + url.split('/')[-1]
+    print(pic)
+    print(url)
+
+    try:
+        if not os.path.exists(PATH + title):
+            os.mkdir(PATH + title)
+        if not os.path.exists(pic):
+            r = requests.get(url)
+            with open(pic, 'wb') as f:
+                f.write(r.content)
+                f.close()
+                print("保存成功")
+        else:
+            print("文件存在")
+    except:
+        print("爬取失败")
 
 
 if __name__ == "__main__":
-    for i in range(3):  #爬取页数
-        urlspider(i + 1)
+    gethtmllist()
