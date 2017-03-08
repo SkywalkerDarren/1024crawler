@@ -23,7 +23,7 @@ def userinterface():
     print("└────────────────────┘")
     while True:
         try:
-            select = int(input('Input an integer: '))
+            select = int(input('请输入序号'))
             if 0 < select < 5:
                 return select
             elif select == 5:
