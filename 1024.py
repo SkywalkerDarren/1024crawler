@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup
 
 PATH = 'D:\\Media\\'
 ROOTURL = 'http://cc.vcly.org/'
-menu = 'thread0806.php?fid=8&type='
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                          'Chrome/55.0.2883.87 Safari/537.36'}
 
@@ -36,18 +35,23 @@ def userinterface():
 
 def request(url):
     try:
-        r = requests.get(ROOTURL + url, headers=headers)
+        r = requests.get(ROOTURL + url, headers=headers, timeout=30)
         r.encoding = 'gbk'
         print(r.status_code)
         r.raise_for_status()
         return r
     except ConnectionError:
         print("ConnectionError")
+    except requests.Timeout:
+        print("TimeoutError")
+    except requests.TooManyRedirects:
+        print("TooManyRedirects")
+    except:
+        print("Some exception occurred")
 
 
-def gethtmllist():
-    select = userinterface()
-    r = request(menu + str(select))
+def gethtmllist(select, page):
+    r = request('thread0806.php?fid=8&type=' + str(select) + '&page=' + str(page))
     soup = BeautifulSoup(r.text, 'html.parser')
 
     for url in soup.find_all('a', id="", target="_blank", href=re.compile('htm_data'), title=""):
@@ -84,9 +88,25 @@ def downloadpic(url, title):
                 print("保存成功")
         else:
             print("文件存在")
+    except ConnectionError:
+        print("ConnectionError")
+    except requests.Timeout:
+        print("TimeoutError")
+    except requests.TooManyRedirects:
+        print("TooManyRedirects")
     except:
         print("爬取失败")
 
 
 if __name__ == "__main__":
-    gethtmllist()
+    select = userinterface()
+    pages = 1
+    while True:
+        try:
+            pages = int(input("爬取页数"))
+            break
+        except:
+            print("输入正整数")
+
+    for page in range(pages):
+        gethtmllist(select, page)
