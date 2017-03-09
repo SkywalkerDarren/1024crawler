@@ -4,8 +4,8 @@ import requests
 import re
 from bs4 import BeautifulSoup
 
-PATH = 'D:\\Media\\'
-ROOTURL = 'http://cc.vcly.org/'
+PATH = 'D:\\Media\\'  #存储地址
+ROOTURL = 'http://cc.vcly.org/'  #http://www.t66y.com/
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                          'Chrome/55.0.2883.87 Safari/537.36'}
 
@@ -35,7 +35,7 @@ def userinterface():
 
 def request(url):
     try:
-        r = requests.get(ROOTURL + url, headers=headers, timeout=30)
+        r = requests.get(ROOTURL + url, headers=headers, timeout=30)  #设置超时
         r.encoding = 'gbk'
         print(r.status_code)
         r.raise_for_status()
@@ -76,26 +76,38 @@ def downloadpic(url, title):
     pic = PATH + title + '\\' + url.split('/')[-1]
     print(pic)
     print(url)
+    test = 3  #重试次数
+    while test:
+        try:
+            if not os.path.exists(PATH + title):
+                os.mkdir(PATH + title)
+            if not os.path.exists(pic):
+                r = requests.get(url, timeout=10)  #设置超时
+                with open(pic, 'wb') as f:
+                    f.write(r.content)
+                    f.close()
+                    print("保存成功 大小为" + str(len(r.content)))
+            else:
+                print("文件存在")
+            break
 
-    try:
-        if not os.path.exists(PATH + title):
-            os.mkdir(PATH + title)
-        if not os.path.exists(pic):
-            r = requests.get(url)
-            with open(pic, 'wb') as f:
-                f.write(r.content)
-                f.close()
-                print("保存成功")
-        else:
-            print("文件存在")
-    except ConnectionError:
-        print("ConnectionError")
-    except requests.Timeout:
-        print("TimeoutError")
-    except requests.TooManyRedirects:
-        print("TooManyRedirects")
-    except:
-        print("爬取失败")
+        except requests.ConnectionError:
+            print("ConnectionError")
+            test -= 1
+        except requests.Timeout:
+            print("TimeoutError")
+            test -= 1
+
+        except requests.TooManyRedirects:
+            print("TooManyRedirects")
+            break
+        except requests.HTTPError:
+            print("HTTPError")
+            break
+
+        except :
+            print("爬取失败")
+            break
 
 
 if __name__ == "__main__":
