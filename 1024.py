@@ -40,8 +40,10 @@ def request(url):
         print(r.status_code)
         r.raise_for_status()
         return r
-    except ConnectionError:
+    except requests.ConnectionError:
         print("ConnectionError")
+    except requests.HTTPError:
+        print("HTTPError")
     except requests.Timeout:
         print("TimeoutError")
     except requests.TooManyRedirects:
@@ -86,7 +88,7 @@ def downloadpic(url, title):
                 with open(pic, 'wb') as f:
                     f.write(r.content)
                     f.close()
-                    print("保存成功 大小为" + str(len(r.content)))
+                    print("保存成功 大小为 " + str(len(r.content)//1024) + "KB")
             else:
                 print("文件存在")
             break
