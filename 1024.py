@@ -1,4 +1,4 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 import os
 import time
 import requests
@@ -24,10 +24,10 @@ def userinterface():
     print("└────────────────────┘")
     while True:
         try:
-            select = int(input('请输入序号'))
-            if 0 < select < 5:
-                return select
-            elif select == 5:
+            choose = int(input('请输入序号'))
+            if 0 < choose < 5:
+                return choose
+            elif choose == 5:
                 return 12
             else:
                 print("输入1-5")
@@ -36,13 +36,12 @@ def userinterface():
 
 
 # 地址请求
-def request(url):
+def request(link):
     test = 3
     while test:
         try:
-            r = requests.get(url, headers=headers, timeout=30)  # 设置超时
+            r = requests.get(link, headers=headers, timeout=30)  # 设置超时
             r.encoding = 'gbk'
-            # print(r.status_code)
             r.raise_for_status()
             time.sleep(1)
             return r
@@ -58,39 +57,38 @@ def request(url):
 
 
 # 获取网页地址列表
-def gethtmllist(select, page):
-    r = request(ROOTURL + 'thread0806.php?fid=8&type=' + str(select) + '&page=' + str(page))
+def gethtmllist(choose, maxpage):
+    r = request(ROOTURL + 'thread0806.php?fid=8&type=' + str(choose) + '&page=' + str(maxpage))
     soup = BeautifulSoup(r.text, 'html.parser')
-    urls = soup.find_all('a', id="", target="_blank", href=re.compile('htm_data'), title="")
-    return urls
+    htmlurllist = soup.find_all('a', id="", target="_blank", href=re.compile('htm_data'), title="")
+    return htmlurllist
 
 
 # 获取图片地址列表
-def getpiclist(html):
-    r = request(ROOTURL + html)
+def getpiclist(htmlurl):
+    r = request(ROOTURL + htmlurl)
     soup = BeautifulSoup(r.text, 'html.parser')
-
     div = soup.find('div', class_="tpc_content do_not_catch")
     pattern = re.compile('src=\"(.*?)\"')
-    picurls = re.findall(pattern, str(div))
-    return picurls
+    picurllist = re.findall(pattern, str(div))
+    return picurllist
 
 
 # 下载图片
-def downloadpic(url, title):
-    pic = PATH + title + '\\' + url.split('/')[-1]
+def downloadpic(pictureurl, title):
+    pic = PATH + title + '\\' + pictureurl.split('/')[-1]
     print(pic)
-    print(url)
+    print(pictureurl)
     test = 3  # 重试次数
     while test:
-        if title.find('!') > 0: # 排除垃圾文件
+        if title.find('!') > 0:  # 排除垃圾文件
             print("rubbish file")
             break
         try:
             if not os.path.exists(PATH + title):
                 os.mkdir(PATH + title)
             if not os.path.exists(pic):
-                r = request(url)
+                r = request(pictureurl)
                 with open(pic, 'wb') as f:
                     f.write(r.content)
                     f.close()
@@ -105,20 +103,14 @@ def downloadpic(url, title):
             break
         except OSError:
             print("名称非法")
-'''
-        except Exception:
-            print("爬取失败")
-'''
+        except Exception as e:
+            print("爬取失败 " + str(e))
 
 
 def removebrokenpic(picpath):
-    with open(picpath, 'rb') as f:
-        if len(f.read()) < 10000:  # 删除10KB以下的文件
-            f.close()
-            os.remove(picpath)
-            print("删除失败文件")
-        else:
-            f.close()
+    if os.path.getsize(picpath) < 10000:  # 删除10KB以下的文件
+        os.remove(picpath)
+        print("删除失败文件")
 
 
 if __name__ == "__main__":
@@ -138,6 +130,7 @@ if __name__ == "__main__":
             html = url.attrs['href']
             print(ROOTURL + html)
             picurls = getpiclist(html)
+
             # 多线程
             threads = []
             for picurl in picurls:
@@ -149,8 +142,9 @@ if __name__ == "__main__":
                 dl.setDaemon(True)
                 dl.start()
 
-
             for t in threads:
                 t.join()
 
             print("网页完成")
+
+    print("爬取完成")
