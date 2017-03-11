@@ -1,13 +1,15 @@
 #-*- coding:utf-8 -*-
 import os
+import time
 import requests
 import re
 from bs4 import BeautifulSoup
+import threading
 
-PATH = 'D:\\Media\\'  #存储地址
-ROOTURL = 'http://cc.vcly.org/'  #http://www.t66y.com/
+PATH = 'D:\\Media\\'  # 存储地址
+ROOTURL = 'http://cc.vcly.org/'  # http://www.t66y.com/
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                         'Chrome/55.0.2883.87 Safari/537.36'}
+                         'Chrotestme/55.0.2883.87 Safari/537.36'}
 
 
 def userinterface():
@@ -33,83 +35,90 @@ def userinterface():
             print('请输入序号')
 
 
+# 地址请求
 def request(url):
-    try:
-        r = requests.get(ROOTURL + url, headers=headers, timeout=30)  #设置超时
-        r.encoding = 'gbk'
-        print(r.status_code)
-        r.raise_for_status()
-        return r
-    except requests.ConnectionError:
-        print("ConnectionError")
-    except requests.HTTPError:
-        print("HTTPError")
-    except requests.Timeout:
-        print("TimeoutError")
-    except requests.TooManyRedirects:
-        print("TooManyRedirects")
-    except:
-        print("Some exception occurred")
+    test = 3
+    while test:
+        try:
+            r = requests.get(url, headers=headers, timeout=30)  # 设置超时
+            r.encoding = 'gbk'
+            # print(r.status_code)
+            r.raise_for_status()
+            time.sleep(1)
+            return r
+        except requests.ConnectionError:
+            print("ConnectionError")
+        except requests.HTTPError:
+            print("HTTPError")
+        except requests.Timeout:
+            print("TimeoutError")
+        except requests.TooManyRedirects:
+            print("TooManyRedirects")
+        test -= 1
 
 
+# 获取网页地址列表
 def gethtmllist(select, page):
-    r = request('thread0806.php?fid=8&type=' + str(select) + '&page=' + str(page))
+    r = request(ROOTURL + 'thread0806.php?fid=8&type=' + str(select) + '&page=' + str(page))
     soup = BeautifulSoup(r.text, 'html.parser')
-
-    for url in soup.find_all('a', id="", target="_blank", href=re.compile('htm_data'), title=""):
-        print(url.string)
-        html = url.attrs['href']
-        print(ROOTURL + html)
-        getpiclist(html, url.string)
+    urls = soup.find_all('a', id="", target="_blank", href=re.compile('htm_data'), title="")
+    return urls
 
 
-def getpiclist(html, title):
-    r = request(html)
+# 获取图片地址列表
+def getpiclist(html):
+    r = request(ROOTURL + html)
     soup = BeautifulSoup(r.text, 'html.parser')
 
     div = soup.find('div', class_="tpc_content do_not_catch")
     pattern = re.compile('src=\"(.*?)\"')
-    items = re.findall(pattern, str(div))
-    for url in items:
-        downloadpic(url, title)
+    picurls = re.findall(pattern, str(div))
+    return picurls
 
 
+# 下载图片
 def downloadpic(url, title):
     pic = PATH + title + '\\' + url.split('/')[-1]
     print(pic)
     print(url)
-    test = 3  #重试次数
+    test = 3  # 重试次数
     while test:
+        if title.find('!') > 0: # 排除垃圾文件
+            print("rubbish file")
+            break
         try:
             if not os.path.exists(PATH + title):
                 os.mkdir(PATH + title)
             if not os.path.exists(pic):
-                r = requests.get(url, timeout=10)  #设置超时
+                r = request(url)
                 with open(pic, 'wb') as f:
                     f.write(r.content)
                     f.close()
                     print("保存成功 大小为 " + str(len(r.content)//1024) + "KB")
+                removebrokenpic(pic)
             else:
                 print("文件存在")
+                removebrokenpic(pic)
             break
-
-        except requests.ConnectionError:
-            print("ConnectionError")
-            test -= 1
-        except requests.Timeout:
-            print("TimeoutError")
-            test -= 1
-
-        except requests.TooManyRedirects:
-            print("TooManyRedirects")
+        except FileExistsError:
+            print("文件存在错误")
             break
-        except requests.HTTPError:
-            print("HTTPError")
-            break
-
-        except :
+        except OSError:
+            print("名称非法")
+'''
+        except Exception:
             print("爬取失败")
-            break
+'''
+
+
+def removebrokenpic(picpath):
+    with open(picpath, 'rb') as f:
+        if len(f.read()) < 10000:  # 删除10KB以下的文件
+            f.close()
+            os.remove(picpath)
+            print("删除失败文件")
+        else:
+            f.close()
 
 
 if __name__ == "__main__":
@@ -119,8 +128,29 @@ if __name__ == "__main__":
         try:
             pages = int(input("爬取页数"))
             break
-        except:
+        except ValueError:
             print("输入正整数")
 
     for page in range(pages):
-        gethtmllist(select, page)
+        urls = gethtmllist(select, page)
+        for url in urls:
+            print(url.string)
+            html = url.attrs['href']
+            print(ROOTURL + html)
+            picurls = getpiclist(html)
+            # 多线程
+            threads = []
+            for picurl in picurls:
+                # downloadpic(url, title)
+                t = threading.Thread(target=downloadpic, args=(picurl, url.string))
+                threads.append(t)
+
+            for dl in threads:
+                dl.setDaemon(True)
+                dl.start()
+
+
+            for t in threads:
+                t.join()
+
+            print("网页完成")
