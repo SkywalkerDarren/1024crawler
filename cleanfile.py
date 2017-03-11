@@ -1,29 +1,32 @@
 # -*-coding:utf-8-*-
 
 import os
-PATH = 'D:\\Media\\'
+
 
 # 清空垃圾文件
-cnt = 0
-for parent, dirnames, filenames in os.walk(PATH):  # 三个参数：分别返回1.父目录 2.所有文件夹名字（不含路径） 3.所有文件名字
-    for filename in filenames:  # 输出文件信息
+def cleanfile(path):
+    i = 0
+    j = 0
+    for parent, dirnames, filenames in os.walk(path, False):  # 遍历文件
+        for filename in filenames:
+            picpath = os.path.join(parent, filename)  # 输出文件路径信息
+            if os.path.getsize(picpath) < 10000:
+                i += 1
+                os.remove(picpath)
+                print("删除 " + picpath)
+        for dirname in dirnames:
+            try:
+                os.rmdir(path + dirname)
+            except OSError:
+                pass
+            else:
+                j += 1
+                print("删除 " + path + dirname)
+    print("共删除 " + str(i) + " 个文件")
+    print("共删除 " + str(j) + " 个文件夹")
 
-        picpath = os.path.join(parent, filename)  # 输出文件路径信息
-        if os.path.getsize(picpath) < 10000:
-            cnt += 1
-            os.remove(picpath)
-            print("删除 " + picpath)
 
-print("共删除 " + str(cnt) + " 个文件")
-
-# 清空空文件夹
-cnt = 0
-for menu in os.listdir(PATH):
-    try:
-        os.rmdir(PATH + menu)
-    except OSError:
-        pass
-    else:
-        print("删除 " + PATH + menu)
-        cnt += 1
-print("共删除 " + str(cnt) + " 个文件夹")
+def removebrokenpic(path):
+    if os.path.getsize(path) < 10000:  # 删除10KB以下的文件
+        os.remove(path)
+        print("删除失败文件")
