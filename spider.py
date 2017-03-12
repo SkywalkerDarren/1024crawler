@@ -1,3 +1,4 @@
+import string
 import time
 import os
 import requests
@@ -17,10 +18,15 @@ def request(url):
             r = requests.get(url, headers=headers, timeout=30)  # 设置超时
             r.encoding = 'gbk'
             r.raise_for_status()
-            time.sleep(1)
+            time.sleep(0.1)
             return r
+        except requests.Timeout as e:
+            print("Timeout" + str(e))
+        except requests.ConnectionError as e:
+            print("ConnectionError" + str(e))
         except Exception as e:
             print("错误原因 " + str(e))
+            break
         test -= 1
 
 
@@ -46,29 +52,24 @@ def getpiclist(rooturl, htmlurl):
 
 # 下载图片
 def downloadpic(path, pictureurl, title):
-    pic = path + title + '\\' + pictureurl.split('/')[-1]
-    print(pic)
-    print(pictureurl)
-    test = 3  # 重试次数
-    while test:
-        try:
-            if not os.path.exists(path + title):
-                os.mkdir(path + title)
-            if not os.path.exists(pic):
-                r = request(pictureurl)
-                with open(pic, 'wb') as f:
-                    f.write(r.content)
-                    f.close()
-                    print("保存成功 大小为 " + str(len(r.content)//1024) + "KB")
-                removebrokenpic(pic)
-            else:
-                print("文件存在")
-                removebrokenpic(pic)
-            break
-        except FileExistsError:
-            print("文件存在错误")
-            break
-        except OSError:
-            print("名称非法")
-        except Exception as e:
-            print("爬取失败 " + str(e))
+    strings = pictureurl.split('/')[-1].replace("&amp;", ".").replace("image.php?id=", "")
+
+    pic = path + title + '\\' + strings
+    # print(pic)
+    # print(pictureurl)
+    try:
+        if not os.path.exists(path + title):
+            os.mkdir(path + title)
+        if not os.path.exists(pic):
+            r = request(pictureurl)
+            with open(pic, 'wb') as f:
+                f.write(r.content)
+                f.close()
+                print("保存成功 大小为 " + str(len(r.content)//1024) + "KB")
+            removebrokenpic(pic)
+        else:
+            removebrokenpic(pic)
+    except Exception as e:
+        print("爬取失败 " + str(e))
+        print(pictureurl)
+

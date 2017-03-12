@@ -1,6 +1,7 @@
 # -*-coding:utf-8-*-
 
 import os
+PATH = 'D:\\Media\\'  # 存储地址
 
 
 # 清空垃圾文件
@@ -12,8 +13,8 @@ def cleanfile(path):
             picpath = os.path.join(parent, filename)  # 输出文件路径信息
             if os.path.getsize(picpath) < 10000:
                 i += 1
+                print("删除 " + picpath + " " + str(os.path.getsize(picpath)))
                 os.remove(picpath)
-                print("删除 " + picpath)
         for dirname in dirnames:
             try:
                 os.rmdir(path + dirname)
@@ -30,3 +31,6 @@ def removebrokenpic(path):
     if os.path.getsize(path) < 10000:  # 删除10KB以下的文件
         os.remove(path)
         print("删除失败文件")
+
+if __name__ == "__main__":
+    cleanfile(PATH)
