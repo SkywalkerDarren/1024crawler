@@ -5,7 +5,16 @@ from spider import *
 from cleanfile import cleanfile
 
 PATH = 'D:\\Media\\'  # 存储地址
-ROOTURL = 'http://www.t66y.com/'  # http://www.t66y.com/
+ROOTURL = 'http://www.t66y.com/'  # http://www.t66y.com/的代理地址
+
+
+def testrooturl(rooturl):
+    try:
+        r = requests.get(rooturl)
+        r.raise_for_status()
+    except Exception as e:
+        print("地址已失效，请更换 " + str(e))
+        exit()
 
 
 def userinterface():
@@ -33,6 +42,7 @@ def userinterface():
 
 
 if __name__ == "__main__":
+    testrooturl(ROOTURL)
     select = userinterface()
     start = 1
     end = 2
