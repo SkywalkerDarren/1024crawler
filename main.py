@@ -5,7 +5,7 @@ from spider import *
 from cleanfile import cleanfile
 
 PATH = 'D:\\Media\\'  # 存储地址
-ROOTURL = 'http://www.t66y.com/'  # http://www.t66y.com/的代理地址
+ROOTURL = 'http://c6.3hx.info/'  # http://www.t66y.com/的代理地址
 
 
 def testrooturl(rooturl):
@@ -41,6 +41,20 @@ def userinterface():
             print('请输入序号')
 
 
+# 多线程爬虫
+def threadspyder():
+    threads = []
+    for picurl in picurls:
+        t = threading.Thread(target=downloadpic, args=(PATH, picurl, url.string))
+        threads.append(t)
+    for t in threads:
+        t.setDaemon(True)
+        t.start()
+    for t in threads:
+        t.join()
+    print("网页完成")
+
+
 if __name__ == "__main__":
     testrooturl(ROOTURL)
     select = userinterface()
@@ -58,24 +72,14 @@ if __name__ == "__main__":
         urls = gethtmllist(ROOTURL, select, page)
         for url in urls:
             print(url.string)
-            if url.string.find('!') > 0:  # 排除垃圾文件
+            if url.string.find('!') > 0 or url.string.find('！') > 0 or url.string.find('~') > 0:  # 排除垃圾文件
                 print("垃圾网页")
                 continue
             html = url.attrs['href']
             print(ROOTURL + html)
             picurls = getpiclist(ROOTURL, html)
+            threadspyder()
 
-            # 多线程
-            threads = []
-            for picurl in picurls:
-                t = threading.Thread(target=downloadpic, args=(PATH, picurl, url.string))
-                threads.append(t)
-            for dl in threads:
-                dl.setDaemon(True)
-                dl.start()
-            for t in threads:
-                t.join()
-            print("网页完成")
         print("---------------------第 " + str(page) + " 页完成---------------------")
 
     print("爬取完成")

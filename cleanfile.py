@@ -33,4 +33,5 @@ def removebrokenpic(path):
         print("删除失败文件")
 
 if __name__ == "__main__":
+    print("开始清理")
     cleanfile(PATH)
