@@ -3,6 +3,7 @@
 import threading
 from spider import *
 from cleanfile import cleanfile
+from cleanfile import filesize
 
 PATH = 'D:\\Media\\'  # 存储地址
 ROOTURL = 'http://c6.3hx.info/'  # http://www.t66y.com/的代理地址
@@ -86,3 +87,7 @@ if __name__ == "__main__":
 
     print("进行文件清理")
     cleanfile(PATH)
+    x = input('是否列出重复文件：')
+    if x == 'y' or x == 'Y':
+        filesize(PATH)
+    print('清理结束')
