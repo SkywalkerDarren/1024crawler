@@ -41,25 +41,31 @@ def chkmd5(filepath):
         return m.hexdigest()
 
 
-def filesize(path):
-    print('正在清理重复文件，可能需要几分钟')
+def filemd5(path):
     filedic = {}
-    with open(path + '重复文件.txt', 'w', encoding='utf-8') as f:
-        for parent, dirnames, filenames in os.walk(path, False):
-            for filename in filenames:
-                filepath = os.path.join(parent, filename)
-                md5 = chkmd5(filepath)
-                filedic.setdefault(md5, []).append(filepath)
-                if len(filedic[md5]) > 1:
-                    f.write(filepath + '\n')
-        f.close()
+    for parent, dirnames, filenames in os.walk(path, False):
+        for filename in filenames:
+            filepath = os.path.join(parent, filename)
+            md5 = chkmd5(filepath)
+            filedic.setdefault(md5, []).append(filepath)
     return filedic
+
+
+def repeatfile(path):
+    print('正在清理重复文件，可能需要几分钟')
+    fdic = filemd5(path)
+    with open(PATH + '重复文件.txt', 'w', encoding='utf-8') as f:
+        for i in fdic.keys():
+            if len(fdic[i]) > 1:
+                f.write(str(fdic[i]).replace("\', \'", " ").replace("[\'", "")
+                        .replace("\']", "").replace("\\\\", "\\") + '\n')
+        f.close()
 
 
 if __name__ == "__main__":
     print("开始清理")
     cleanfile(PATH)
-    x = input('是否列出重复文件：')
+    x = input('是否列出重复文件(y/n):')
     if x == 'y' or x == 'Y':
-        filesize(PATH)
+        repeatfile(PATH)
     print('清理结束')

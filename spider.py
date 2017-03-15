@@ -53,10 +53,7 @@ def getpiclist(rooturl, htmlurl):
 # 下载图片
 def downloadpic(path, pictureurl, title):
     strings = pictureurl.split('/')[-1].replace("&amp;", ".").replace("image.php?id=", "")
-
     pic = path + title + '\\' + strings
-    # print(pic)
-    # print(pictureurl)
     try:
         if not os.path.exists(path + title):
             os.mkdir(path + title)

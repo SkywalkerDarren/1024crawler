@@ -3,7 +3,7 @@
 import threading
 from spider import *
 from cleanfile import cleanfile
-from cleanfile import filesize
+from cleanfile import repeatfile
 
 PATH = 'D:\\Media\\'  # 存储地址
 ROOTURL = 'http://c6.3hx.info/'  # http://www.t66y.com/的代理地址
@@ -68,7 +68,6 @@ if __name__ == "__main__":
             break
         except ValueError:
             print("输入正整数")
-
     for page in range(start, end):
         urls = gethtmllist(ROOTURL, select, page)
         for url in urls:
@@ -80,14 +79,10 @@ if __name__ == "__main__":
             print(ROOTURL + html)
             picurls = getpiclist(ROOTURL, html)
             threadspyder()
-
         print("---------------------第 " + str(page) + " 页完成---------------------")
-
     print("爬取完成")
-
     print("进行文件清理")
     cleanfile(PATH)
-    x = input('是否列出重复文件：')
-    if x == 'y' or x == 'Y':
-        filesize(PATH)
+    print('列出重复文件')
+    repeatfile(PATH)
     print('清理结束')
