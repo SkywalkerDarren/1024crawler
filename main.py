@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*-
+# -*-coding:utf-8-*-
 
 import threading
 from spider import *
