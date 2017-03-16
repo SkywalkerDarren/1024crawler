@@ -1,4 +1,4 @@
-import string
+
 import time
 import os
 import requests
@@ -69,4 +69,3 @@ def downloadpic(path, pictureurl, title):
     except Exception as e:
         print("爬取失败 " + str(e))
         print(pictureurl)
-
