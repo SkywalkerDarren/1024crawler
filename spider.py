@@ -22,13 +22,14 @@ def request(url):
             time.sleep(0.1)
             return r
         except requests.Timeout as e:
-            print("Timeout" + str(e))
+            print("Timeout " + str(e))
         except requests.ConnectionError as e:
-            print("ConnectionError" + str(e))
+            print("ConnectionError " + str(e))
         except Exception as e:
             print("错误原因 " + str(e))
             break
         test -= 1
+    return ""
 
 
 # 获取网页地址列表
