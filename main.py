@@ -1,7 +1,7 @@
 # -*-coding:utf-8-*-
 
 import threading
-from spider import *
+from crawler import *
 from cleanfile import cleanfile
 from cleanfile import repeatfile
 
