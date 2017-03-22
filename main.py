@@ -83,6 +83,6 @@ if __name__ == "__main__":
     print("爬取完成")
     print("进行文件清理")
     cleanfile(PATH)
-    print('列出重复文件')
-    repeatfile(PATH)
+    # print('列出重复文件')  # 自行选择是否清理
+    # repeatfile(PATH)
     print('清理结束')

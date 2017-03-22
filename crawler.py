@@ -29,7 +29,7 @@ def request(url):
             print("错误原因 " + str(e))
             break
         test -= 1
-    return ""
+    return 0
 
 
 # 获取网页地址列表
@@ -68,6 +68,5 @@ def downloadpic(path, pictureurl, title):
             removebrokenpic(pic)
         else:
             removebrokenpic(pic)
-    except Exception as e:
-        print("爬取失败 " + str(e))
-        print(pictureurl)
+    except:
+        print("爬取失败 " + pictureurl)
