@@ -29,7 +29,7 @@ def insertsql(connection, picaddr, md5):
     try:
         with connection.cursor() as cursor:
             sql = "INSERT INTO `filemd5`.`filelist` " \
-                  "(`PicAddr`, `PicName`, `PicMd5`, `PicSize`) VALUES (%s, %s, %s, %s)"
+                  "(`PicAddr`, `PicName`, `PicMd5`, `PicSize`) VALUES (%s, %s, %s, %s);"
             cursor.execute(sql, (picaddr, picaddr.split('\\')[-1], md5, str(os.path.getsize(picaddr))))
         connection.commit()
     except pymysql.Error:
@@ -73,15 +73,15 @@ def chkmd5(filepath):
 
 
 def filemd5(path):
-    connection = pymysql.connect(**config)
+    connection = pymysql.connect(**config)  # 如果没有数据库 可以注释此行
     filedic = {}
     for parent, dirnames, filenames in os.walk(path, False):
         for filename in filenames:
             filepath = os.path.join(parent, filename)
             md5 = chkmd5(filepath)
-            insertsql(connection, filepath, md5)
+            insertsql(connection, filepath, md5)  # 如果没有数据库 可以注释此行
             filedic.setdefault(md5, []).append(filepath)
-    connection.close()
+    connection.close()  # 如果没有数据库 可以注释此行
     return filedic
 
 
@@ -98,7 +98,7 @@ def repeatfile(path):
 
 if __name__ == "__main__":
     print("开始清理")
-    # cleanfile(PATH)
+    cleanfile(PATH)
     x = input('是否列出重复文件(y/n):')
     if x == 'y' or x == 'Y':
         repeatfile(PATH)
