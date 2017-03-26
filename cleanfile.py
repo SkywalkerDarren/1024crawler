@@ -2,7 +2,38 @@
 
 import os
 import hashlib
+import pymysql
+
 PATH = 'D:\\Media\\'  # 存储地址
+config = {
+    'host': '127.0.0.1',
+    'port': 3306,
+    'user': 'your username',  # 你的数据库用户名
+    'password': 'your password',  # 你的数据库密码
+    'db': 'filemd5',  # 你的数据库
+    'charset': 'utf8mb4',
+    'cursorclass': pymysql.cursors.DictCursor
+}
+'''
+CREATE TABLE `filelist` (
+    `PicAddr` varchar(255) NOT NULL ,
+    `PicName` varchar(128) NOT NULL,
+    `PicMd5` varchar(32) NOT NULL,
+    `PicSize` int Not Null,
+    PRIMARY KEY (`PicAddr`)
+)
+'''
+
+
+def insertsql(connection, picaddr, md5):
+    try:
+        with connection.cursor() as cursor:
+            sql = "INSERT INTO `filemd5`.`filelist` " \
+                  "(`PicAddr`, `PicName`, `PicMd5`, `PicSize`) VALUES (%s, %s, %s, %s)"
+            cursor.execute(sql, (picaddr, picaddr.split('\\')[-1], md5, str(os.path.getsize(picaddr))))
+        connection.commit()
+    except pymysql.Error:
+        pass
 
 
 # 清空垃圾文件
@@ -42,12 +73,15 @@ def chkmd5(filepath):
 
 
 def filemd5(path):
+    connection = pymysql.connect(**config)
     filedic = {}
     for parent, dirnames, filenames in os.walk(path, False):
         for filename in filenames:
             filepath = os.path.join(parent, filename)
             md5 = chkmd5(filepath)
+            insertsql(connection, filepath, md5)
             filedic.setdefault(md5, []).append(filepath)
+    connection.close()
     return filedic
 
 
@@ -64,7 +98,7 @@ def repeatfile(path):
 
 if __name__ == "__main__":
     print("开始清理")
-    cleanfile(PATH)
+    # cleanfile(PATH)
     x = input('是否列出重复文件(y/n):')
     if x == 'y' or x == 'Y':
         repeatfile(PATH)
