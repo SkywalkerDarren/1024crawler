@@ -69,9 +69,8 @@ def downloadpic(path, pictureurl, title):
                 print("保存成功 大小为 " + str(len(r.content)//1024) + "KB")
             if not removebrokenpic(pic):
                 m = hashlib.md5(r.content)
-                md5 = m.hexdigest
-                insertsql(pic, str(md5))
-                # pass
+                md5 = m.hexdigest()
+                insertsql(pic, md5)
         else:
             removebrokenpic(pic)
     except Exception as e:

@@ -3,13 +3,14 @@
 import os
 import hashlib
 import pymysql
+import traceback
 
 PATH = 'D:\\Media\\'  # 存储地址
 config = {
     'host': '127.0.0.1',
     'port': 3306,
     'user': 'root',  # 你的数据库用户名
-    'password': 'pw',  # 你的数据库密码
+    'password': 'yh83533010YH/*-+',  # 你的数据库密码
     'db': 'filemd5',  # 你的数据库
     'charset': 'utf8mb4',
     'cursorclass': pymysql.cursors.DictCursor
@@ -34,8 +35,8 @@ def insertsql(picaddr, md5):
             cursor.execute(sql, (picaddr, picaddr.split('\\')[-1], md5, str(os.path.getsize(picaddr))))
         connection.commit()
     except pymysql.Error as e:
-        if not str(e).find('1062'):
-            print(str(e))
+        # if not str(e).find('1062'):
+        traceback.print_exc()
     finally:
         connection.close()
 
