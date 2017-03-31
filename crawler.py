@@ -3,9 +3,11 @@
 import time
 import os
 import requests
-from cleanfile import removebrokenpic
+from cleanfile import (removebrokenpic, insertsql)
 from bs4 import BeautifulSoup
 import re
+import hashlib
+import traceback
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                          'Chrotestme/55.0.2883.87 Safari/537.36'}
@@ -29,7 +31,7 @@ def request(url):
             print("错误原因 " + str(e))
             break
         test -= 1
-    return 0
+    return ""
 
 
 # 获取网页地址列表
@@ -65,8 +67,14 @@ def downloadpic(path, pictureurl, title):
                 f.write(r.content)
                 f.close()
                 print("保存成功 大小为 " + str(len(r.content)//1024) + "KB")
-            removebrokenpic(pic)
+            if not removebrokenpic(pic):
+                m = hashlib.md5(r.content)
+                md5 = m.hexdigest
+                insertsql(pic, str(md5))
+                # pass
         else:
             removebrokenpic(pic)
-    except:
+    except Exception as e:
         print("爬取失败 " + pictureurl)
+        print("原因：" + str(e))
+        traceback.print_exc()

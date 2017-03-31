@@ -6,7 +6,7 @@ from cleanfile import cleanfile
 from cleanfile import repeatfile
 
 PATH = 'D:\\Media\\'  # 存储地址
-ROOTURL = 'http://c6.3hx.info/'  # http://www.t66y.com/的代理地址
+ROOTURL = 'http://www.t66y.com/'  # http://www.t66y.com/的代理地址
 
 
 def testrooturl(rooturl):
@@ -83,6 +83,6 @@ if __name__ == "__main__":
     print("爬取完成")
     print("进行文件清理")
     cleanfile(PATH)
-    print('列出重复文件')  # 自行选择是否清理
-    repeatfile(PATH)
+    # print('列出重复文件')  # 自行选择是否清理
+    # repeatfile(PATH)
     print('清理结束')

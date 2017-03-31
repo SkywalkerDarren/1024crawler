@@ -8,8 +8,8 @@ PATH = 'D:\\Media\\'  # 存储地址
 config = {
     'host': '127.0.0.1',
     'port': 3306,
-    'user': 'your username',  # 你的数据库用户名
-    'password': 'your password',  # 你的数据库密码
+    'user': 'root',  # 你的数据库用户名
+    'password': 'yh83533010YH/*-+',  # 你的数据库密码
     'db': 'filemd5',  # 你的数据库
     'charset': 'utf8mb4',
     'cursorclass': pymysql.cursors.DictCursor
@@ -25,15 +25,19 @@ CREATE TABLE `filelist` (
 '''
 
 
-def insertsql(connection, picaddr, md5):
+def insertsql(picaddr, md5):
+    connection = pymysql.connect(**config)
     try:
         with connection.cursor() as cursor:
             sql = "INSERT INTO `filemd5`.`filelist` " \
                   "(`PicAddr`, `PicName`, `PicMd5`, `PicSize`) VALUES (%s, %s, %s, %s);"
             cursor.execute(sql, (picaddr, picaddr.split('\\')[-1], md5, str(os.path.getsize(picaddr))))
         connection.commit()
-    except pymysql.Error:
-        pass
+    except pymysql.Error as e:
+        if not str(e).find('1062'):
+            print(str(e))
+    finally:
+        connection.close()
 
 
 # 清空垃圾文件
@@ -63,6 +67,9 @@ def removebrokenpic(path):
     if os.path.getsize(path) < 10000:  # 删除10KB以下的文件
         os.remove(path)
         print("删除失败文件")
+        return True
+    else:
+        return False
 
 
 def chkmd5(filepath):
@@ -73,15 +80,13 @@ def chkmd5(filepath):
 
 
 def filemd5(path):
-    connection = pymysql.connect(**config)  # 如果没有数据库 可以注释此行
     filedic = {}
     for parent, dirnames, filenames in os.walk(path, False):
         for filename in filenames:
             filepath = os.path.join(parent, filename)
             md5 = chkmd5(filepath)
-            insertsql(connection, filepath, md5)  # 如果没有数据库 可以注释此行
+            insertsql(filepath, md5)  # 如果没有数据库 可以注释此行
             filedic.setdefault(md5, []).append(filepath)
-    connection.close()  # 如果没有数据库 可以注释此行
     return filedic
 
 
@@ -98,7 +103,7 @@ def repeatfile(path):
 
 if __name__ == "__main__":
     print("开始清理")
-    cleanfile(PATH)
+    # cleanfile(PATH)
     x = input('是否列出重复文件(y/n):')
     if x == 'y' or x == 'Y':
         repeatfile(PATH)
