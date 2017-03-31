@@ -10,7 +10,7 @@ config = {
     'host': '127.0.0.1',
     'port': 3306,
     'user': 'root',  # 你的数据库用户名
-    'password': 'yh83533010YH/*-+',  # 你的数据库密码
+    'password': 'pw',  # 你的数据库密码
     'db': 'filemd5',  # 你的数据库
     'charset': 'utf8mb4',
     'cursorclass': pymysql.cursors.DictCursor
