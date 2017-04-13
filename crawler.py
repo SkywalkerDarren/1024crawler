@@ -28,7 +28,8 @@ def request(url):
         except requests.ConnectionError as e:
             print("ConnectionError " + str(e))
         except Exception as e:
-            print("错误原因 " + str(e))
+            print(str(e))
+            traceback.print_exc()
             break
         test -= 1
     return ""
