@@ -34,9 +34,9 @@ def insertsql(picaddr, md5):
                   "(`PicAddr`, `PicName`, `PicMd5`, `PicSize`) VALUES (%s, %s, %s, %s);"
             cursor.execute(sql, (picaddr, picaddr.split('\\')[-1], md5, str(os.path.getsize(picaddr))))
         connection.commit()
-    except pymysql.Error as e:
-        # if not str(e).find('1062'):
-        traceback.print_exc()
+    except Exception as e:
+        if not str(e).find('1062'):
+            traceback.print_exc()
     finally:
         connection.close()
 
