@@ -47,6 +47,13 @@ def threadspyder():
     threads = []
     for picurl in picurls:
         t = threading.Thread(target=downloadpic, args=(PATH, picurl, url.string))
+        try:
+            if not os.path.exists(PATH + url.string):
+                os.mkdir(PATH + url.string)
+        except Exception as e:
+            print(str(e))
+            traceback.print_exc()
+            pass
         threads.append(t)
     for t in threads:
         t.setDaemon(True)
